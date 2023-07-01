@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+#Execute a command when receive a SIGTERM signal
+
+trap 'echo I am invincible!!!' SIGTERM
+while true
+do
+	echo "To infinity and beyond"
+	sleep 2
+done
