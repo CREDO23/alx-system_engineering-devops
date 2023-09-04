@@ -1,0 +1,30 @@
+#!/usr/bin/env bash
+# Configure Nginx so that its HTTP response contains a custom header (on web-01 and web-02)
+# The name of the custom HTTP header must be X-Served-By followed by the hostname of the server that is serving
+sudo apt-get update
+sudo apt-get -y install nginx
+
+# Allow request through port 80
+sudo ufw allow 'Nginx HTTP'
+
+sudo mkdir -p /var/www/html
+
+# Allow us to easily create files in this directory
+sudo chmod -R 755 /var/www
+
+#  The index page
+echo 'Hello World!' |sudo tee  /var/www/html/index.html
+
+# Error 404 page
+echo "Ceci n'est pas une page" |sudo tee /var/www/html/404.html
+
+# Redirect for a single page(/redirect_me) 
+# Add header to display hostname
+string_for_replacement="server_name _;\n\tadd_header X-Served-By \$hostname;\n\trewrite ^\/redirect_me https:\/\/thierrybakera.vercel.app permanent;"
+sudo sed -i "s/server_name _;/$string_for_replacement/" /etc/nginx/sites-enabled/default
+
+# Redirect for 404 error page
+string_for_replacement="listen 80 default_server;\n\terror_page 404 \/404.html;\n\tlocation = \/404.html {\n\t\troot \/var\/www\/html;\n\t\tinternal;\n\t}"
+sudo sed -i "s/listen 80 default_server;/$string_for_replacement/" /etc/nginx/sites-enabled/default
+
+sudo service nginx restart
